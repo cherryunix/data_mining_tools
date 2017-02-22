@@ -1,0 +1,67 @@
+#! /usr/bin/env python
+__author__ = 'Icyblade Dai'
+
+import argparse
+import os
+import sys
+
+auth = {
+    'impala': {
+        'host': '',
+        'user': '',
+        'pass': '',
+    },
+    'target': {
+        'host': '',
+        'user': '',
+        'pass': '',
+    },
+}
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-q', '--query', help='Your SQL')
+    parser.add_argument('-o', '--output_file', help='Output path.')
+    args = parser.parse_args()
+    path = args.output_file
+
+    if not args.query or not args.output_file:
+        parser.print_help()
+        return
+    filename = os.path.basename(args.output_file)
+    base, ext = os.path.splitext(filename)
+    should_gzip = (ext == '.gz')
+    if should_gzip:
+        filename = base
+    os.system((
+        'impala-shell '
+        '--auth_creds_ok_in_clear '
+        '--impalad={impala_host} '
+        '--user {impala_user} '
+        '--ldap --ldap_password_cmd="echo -n \'{impala_pass}\'" '
+        '-q "{sql}" '
+        '-o /tmp/{filename} '
+        '--print_header --delimited --output_delimiter=,'
+    ).format(
+        impala_host=auth['impala']['host'],
+        impala_user=auth['impala']['user'],
+        impala_pass=auth['impala']['pass'],
+        sql=args.query, filename=filename,
+    ))
+    if should_gzip:
+        os.system('gzip /tmp/{filename}'.format(filename=filename))
+        filename = filename+'.gz'
+
+    os.system((
+        'sshpass -p "{target_pass}" '
+        'scp /tmp/{filename} {target_user}@{target_host}:{path}'
+    ).format(
+        target_host=auth['target']['host'],
+        target_user=auth['target']['user'],
+        target_pass=auth['target']['pass'],
+        path=args.output_file, filename=filename,
+    ))
+    os.system('rm -rf /tmp/{filename}'.format(filename=filename))
+
+if __name__ == '__main__':
+    main()
