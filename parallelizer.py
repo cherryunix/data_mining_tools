@@ -21,9 +21,17 @@ class Parallelizer(object):
 
     def transform(self, model):
         def get_slice(data, idx, parts):
+            is_last_slice = idx == parts - 1
+            
             shape = K.shape(data)
-            size = K.concatenate([shape[:1]//parts, shape[1:]], axis=0)
-            stride = K.concatenate([shape[:1]//parts, shape[1:]*0], axis=0)
+            minibatch_size = shape[:1]
+            features = shape[1:]
+            stride = K.concatenate([minibatch_size//parts, features*0], axis=0)
+            if is_last_slice:
+                # feed everything else if it's the last slice
+                size = K.concatenate([[-1], features], axis=0)
+            else:
+                size = K.concatenate([minibatch_size//parts, features], axis=0)
             start = stride * idx
             return tf.slice(data, start, size)
 
