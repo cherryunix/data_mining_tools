@@ -1,4 +1,5 @@
 #! coding: utf8
+import keras.backend as K
 from keras.layers import Lambda, merge
 from keras.models import Model
 
@@ -20,9 +21,9 @@ class Parallelizer(object):
 
     def transform(self, model):
         def get_slice(data, idx, parts):
-            shape = tf.shape(data)
-            size = tf.concat(0, [shape[:1]/parts, shape[1:]])
-            stride = tf.concat(0, [shape[:1]/parts, shape[1:]*0])
+            shape = K.shape(data)
+            size = K.concatenate([shape[:1]//parts, shape[1:]], axis=0)
+            stride = K.concatenate([shape[:1]//parts, shape[1:]*0], axis=0)
             start = stride * idx
             return tf.slice(data, start, size)
 
