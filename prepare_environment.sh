@@ -16,7 +16,7 @@ sudo make install
 cd ..
 
 # ML env
-sudo pip install -U pip ipython numpy scipy pandas scikit-learn theano future h5py matplotlib seaborn xgboost
+sudo pip install -U pip ipython numpy scipy pandas scikit-learn theano future h5py matplotlib seaborn xgboost pydotplus
 
 # CUDA & cuDNN & DIGITS
 wget http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/cuda-repo-ubuntu1604_8.0.61-1_amd64.deb
