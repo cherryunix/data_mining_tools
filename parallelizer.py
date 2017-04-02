@@ -67,10 +67,10 @@ class Parallelizer(object):
         # all output tensors on CPU
         with tf.device('/cpu:0'):
             return Model(
-                input=model.inputs,
-                output=[
+                inputs=model.inputs,
+                outputs=[
                     # merge outputs from all GPU
-                    merge(o, mode='concat', concat_axis=0)
+                    concatenate(o, axis=0)
                     for o in outputs_all
                 ]
             )
