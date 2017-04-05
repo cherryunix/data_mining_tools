@@ -24,16 +24,15 @@ class Parallelizer(object):
             is_last_slice = idx == parts - 1
             
             shape = K.shape(data)
-            minibatch_size = shape[:1]
-            features = shape[1:]
+            minibatch_size, features = shape[:1], shape[1:]
             stride = K.concatenate([minibatch_size//parts, features*0], axis=0)
             if is_last_slice:
                 # feed everything else if it's the last slice
                 size = K.concatenate([[-1], features], axis=0)
             else:
                 size = K.concatenate([minibatch_size//parts, features], axis=0)
-            start = stride * idx
-            return tf.slice(data, start, size)
+            begin = stride * idx
+            return tf.slice(data, begin, size)
 
         outputs_all = [[] for i in model.outputs]
 
