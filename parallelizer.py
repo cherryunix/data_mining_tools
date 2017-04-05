@@ -1,7 +1,7 @@
 #! coding: utf8
 # Ref: https://github.com/kuza55/keras-extras/blob/master/utils/multi_gpu.py
 import keras.backend as K
-from keras.layers import Lambda, merge
+from keras.layers import Lambda, merge, concatenate
 from keras.models import Model
 
 import tensorflow as tf
