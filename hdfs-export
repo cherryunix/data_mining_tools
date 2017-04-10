@@ -1,0 +1,55 @@
+#! /usr/bin/env python
+__author__ = 'Yuchao Dai'
+
+import argparse
+import os
+import sys
+
+auth = {
+    'target': {
+        'host': '',
+        'user': '',
+        'pass': '',
+    },
+}
+
+def execute_sql(sql, database, auth=None):
+    os.system((
+        'PGPASSWORD={password} '
+        'psql -h {host} -U {user} -d {database} -c "{sql}"'
+    ).format(
+        host=auth['target']['host'], user=auth['target']['user'],
+        password=auth['target']['pass'],
+        database=database, sql=sql
+    ))
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-p', '--path', help='HDFS path.')
+    parser.add_argument('-d', '--database', help='Database name.')
+    parser.add_argument('-t', '--table', help='Table name.')
+    args = parser.parse_args()
+
+    if not args.path or not args.database or not args.table:
+        parser.print_help()
+        return
+    os.system((
+        'hadoop fs -text '
+        '{path} > /tmp/{filename}'
+    ).format(
+        path=args.path, filename=args.table
+    ))
+
+    execute_sql(
+        'truncate table {table}'.format(table=args.table),
+        args.database, auth,
+    )
+    sql = (
+        "\copy {table} from '/tmp/{table}' with csv delimiter '#'"
+    ).format(table=args.table)
+    execute_sql(sql, args.database, auth)
+
+    os.system('rm -rf /tmp/{filename}'.format(filename=args.table))
+
+if __name__ == '__main__':
+    main()
